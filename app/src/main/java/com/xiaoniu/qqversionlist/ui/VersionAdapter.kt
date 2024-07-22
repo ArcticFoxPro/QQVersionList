@@ -22,6 +22,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -32,8 +33,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import coil.transform.RoundedCornersTransformation
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.xiaoniu.qqversionlist.R
@@ -135,7 +136,7 @@ class VersionAdapter : ListAdapter<QQVersionBean, RecyclerView.ViewHolder>(Versi
             }
         } else if (holder is ViewHolderDetail) {
             holder.binding.apply {
-                linearImages.removeAllViews()
+                /*linearImages.removeAllViews()
                 bean.imgs.forEach {
                     val iv = ImageView(holder.itemView.context).apply {
                         setPadding(0, 0, 10, 0)
@@ -145,7 +146,9 @@ class VersionAdapter : ListAdapter<QQVersionBean, RecyclerView.ViewHolder>(Versi
                         crossfade(true)
                         transformations(RoundedCornersTransformation(2.dp.toFloat()))
                     }
-                }
+                }*/
+                scroll.layoutManager = CarouselLayoutManager()
+                scroll.adapter = ImageCarouselAdapter(bean.imgs)
                 tvOldVersion.text = bean.versionNumber
                 tvOldSize.text = bean.size + " MB"
                 tvDetailVersion.text = "版本：" + bean.versionNumber
@@ -341,3 +344,30 @@ class VersionDiffCallback : DiffUtil.ItemCallback<QQVersionBean>() {
     }
 
 }
+
+class ImageCarouselAdapter(private val imageUrls: List<String>) :
+    RecyclerView.Adapter<ImageCarouselAdapter.ImageViewHolder>() {
+
+    inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imageView: ImageView = itemView.findViewById(R.id.carousel_image_view)
+
+        fun bind(imageUrl: String) {
+            imageView.load(imageUrl) {
+                crossfade(true)
+            }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_version_detail_image, parent, false)
+        return ImageViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
+        holder.bind(imageUrls[position])
+    }
+
+    override fun getItemCount(): Int = imageUrls.size
+}
+
